@@ -1,0 +1,11 @@
+package types
+
+import (
+	"context"
+
+	"github.com/Anishguptaprog/services/common/genproto/orders"
+)
+
+type OrderService interface {
+	CreateOrder(context.Context, *orders.Order) error
+}
