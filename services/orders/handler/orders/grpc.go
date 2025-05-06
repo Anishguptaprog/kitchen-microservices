@@ -9,15 +9,26 @@ import (
 )
 
 type OrdersGrpcHandler struct {
-	orderService types.OrderService
+	ordersService types.OrderService
 	orders.UnimplementedOrderServiceServer
 }
 
-func NewOrdersService(grpc *grpc.Server, orderService types.OrderService) {
+func NewGrpcOrdersService(grpc *grpc.Server, ordersService types.OrderService) {
 	gRPCHandler := &OrdersGrpcHandler{
-		orderService: orderService,
+		ordersService: ordersService,
 	}
+
+	// register the OrderServiceServer
 	orders.RegisterOrderServiceServer(grpc, gRPCHandler)
+}
+
+func (h *OrdersGrpcHandler) GetOrders(ctx context.Context, req *orders.GetOrdersRequest) (*orders.GetOrderResponse, error) {
+	o := h.ordersService.GetOrders(ctx)
+	res := &orders.GetOrderResponse{
+		Orders: o,
+	}
+
+	return res, nil
 }
 
 func (h *OrdersGrpcHandler) CreateOrder(ctx context.Context, req *orders.CreateOrderRequest) (*orders.CreateOrderResponse, error) {
@@ -27,13 +38,15 @@ func (h *OrdersGrpcHandler) CreateOrder(ctx context.Context, req *orders.CreateO
 		ProductID:  1,
 		Quantity:   10,
 	}
-	err := h.orderService.CreateOrder(ctx, order)
+
+	err := h.ordersService.CreateOrder(ctx, order)
 	if err != nil {
 		return nil, err
 	}
-	// Create the response object
+
 	res := &orders.CreateOrderResponse{
 		Status: "success",
 	}
+
 	return res, nil
 }
